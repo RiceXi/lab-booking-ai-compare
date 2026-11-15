@@ -1,0 +1,11 @@
+# Runtime data
+data/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Test and editor artifacts
+.coverage
+.pytest_cache/
+.vscode/

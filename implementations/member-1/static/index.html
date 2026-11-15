@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>实验室设备预约</title>
+    <link rel="stylesheet" href="/styles.css?v=20261115">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#overview" aria-label="实验室设备预约首页">
+          <span class="brand-mark" data-icon="flask-conical" aria-hidden="true"></span>
+          <span>
+            <strong>设备预约</strong>
+            <small>LAB RESOURCE</small>
+          </span>
+        </a>
+
+        <nav class="main-nav" aria-label="主导航">
+          <button class="nav-item is-active" type="button" data-view="overview">
+            <span data-icon="layout-dashboard" aria-hidden="true"></span>
+            <span>工作概览</span>
+          </button>
+          <button class="nav-item" type="button" data-view="equipment">
+            <span data-icon="monitor" aria-hidden="true"></span>
+            <span>设备管理</span>
+            <span class="nav-count" id="nav-equipment-count">0</span>
+          </button>
+          <button class="nav-item" type="button" data-view="reservations">
+            <span data-icon="calendar-days" aria-hidden="true"></span>
+            <span>预约管理</span>
+            <span class="nav-count" id="nav-reservation-count">0</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="local-badge">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>本地数据</span>
+          </div>
+          <span>v1.0 · 成员一</span>
+        </div>
+      </aside>
+
+      <div class="sidebar-scrim" id="sidebar-scrim" hidden></div>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="icon-button menu-button" id="menu-button" type="button" aria-label="打开导航">
+            <span data-icon="menu" aria-hidden="true"></span>
+          </button>
+          <div class="page-heading">
+            <p class="eyebrow" id="page-eyebrow">今日工作台</p>
+            <h1 id="page-title">工作概览</h1>
+          </div>
+          <div class="top-actions">
+            <button class="button button-ghost" id="refresh-button" type="button">
+              <span data-icon="refresh-cw" aria-hidden="true"></span>
+              <span>刷新</span>
+            </button>
+            <button class="button button-primary" data-action="new-reservation" type="button">
+              <span data-icon="calendar-plus" aria-hidden="true"></span>
+              <span>新建预约</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="view is-active" id="view-overview" aria-labelledby="overview-title">
+            <div class="section-intro">
+              <div>
+                <h2 id="overview-title">资源运行概况</h2>
+                <p id="today-caption"></p>
+              </div>
+              <span class="live-label">
+                <span class="status-dot" aria-hidden="true"></span>
+                数据已同步
+              </span>
+            </div>
+
+            <div class="stat-grid" id="stat-grid">
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-teal" data-icon="monitor" aria-hidden="true"></div>
+                <div>
+                  <p>设备总数</p>
+                  <strong id="stat-equipment">0</strong>
+                </div>
+                <span class="stat-note">本地资产</span>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-blue" data-icon="activity" aria-hidden="true"></div>
+                <div>
+                  <p>有效预约</p>
+                  <strong id="stat-active">0</strong>
+                </div>
+                <span class="stat-note">已预约及使用中</span>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-amber" data-icon="circle-check" aria-hidden="true"></div>
+                <div>
+                  <p>已完成</p>
+                  <strong id="stat-completed">0</strong>
+                </div>
+                <span class="stat-note">历史使用记录</span>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-red" data-icon="ban" aria-hidden="true"></div>
+                <div>
+                  <p>已取消</p>
+                  <strong id="stat-cancelled">0</strong>
+                </div>
+                <span class="stat-note">不占用时段</span>
+              </article>
+            </div>
+
+            <div class="overview-grid">
+              <section class="panel chart-panel" aria-labelledby="chart-title">
+                <div class="panel-head">
+                  <div>
+                    <h2 id="chart-title">设备预约分布</h2>
+                    <p>未取消预约的记录数量</p>
+                  </div>
+                  <span class="section-icon" data-icon="chart-no-axes-column" aria-hidden="true"></span>
+                </div>
+                <div class="bar-chart" id="bar-chart"></div>
+              </section>
+
+              <section class="panel schedule-panel" aria-labelledby="schedule-title">
+                <div class="panel-head">
+                  <div>
+                    <h2 id="schedule-title">近期预约</h2>
+                    <p>最近五条预约记录</p>
+                  </div>
+                  <button class="text-button" type="button" data-view="reservations">
+                    查看全部
+                    <span data-icon="arrow-right" aria-hidden="true"></span>
+                  </button>
+                </div>
+                <div class="schedule-list" id="schedule-list"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="view-equipment" aria-labelledby="equipment-title" hidden>
+            <div class="section-intro">
+              <div>
+                <h2 id="equipment-title">设备资产</h2>
+                <p>维护设备状态与每日可用时段</p>
+              </div>
+              <button class="button button-primary" id="add-equipment-button" type="button">
+                <span data-icon="plus" aria-hidden="true"></span>
+                <span>添加设备</span>
+              </button>
+            </div>
+
+            <div class="toolbar">
+              <label class="search-field">
+                <span data-icon="search" aria-hidden="true"></span>
+                <input id="equipment-search" type="search" placeholder="搜索编号、名称或位置" autocomplete="off">
+              </label>
+              <span class="result-count" id="equipment-result-count"></span>
+            </div>
+
+            <div class="equipment-grid" id="equipment-grid"></div>
+          </section>
+
+          <section class="view" id="view-reservations" aria-labelledby="reservations-title" hidden>
+            <div class="section-intro">
+              <div>
+                <h2 id="reservations-title">预约计划</h2>
+                <p>组合筛选设备、日期与状态</p>
+              </div>
+              <button class="button button-primary" data-action="new-reservation" type="button">
+                <span data-icon="calendar-plus" aria-hidden="true"></span>
+                <span>新建预约</span>
+              </button>
+            </div>
+
+            <form class="filter-bar" id="reservation-filters">
+              <label>
+                <span>设备</span>
+                <select id="filter-equipment" name="equipment_id">
+                  <option value="">全部设备</option>
+                </select>
+              </label>
+              <label>
+                <span>日期</span>
+                <input id="filter-date" name="date" type="date">
+              </label>
+              <label>
+                <span>状态</span>
+                <select id="filter-status" name="status">
+                  <option value="">全部状态</option>
+                  <option value="booked">已预约</option>
+                  <option value="in_use">使用中</option>
+                  <option value="completed">已完成</option>
+                  <option value="cancelled">已取消</option>
+                </select>
+              </label>
+              <div class="filter-actions">
+                <button class="button button-ghost" id="clear-filters" type="button">
+                  <span data-icon="rotate-ccw" aria-hidden="true"></span>
+                  <span>重置</span>
+                </button>
+                <button class="button button-secondary" type="submit">
+                  <span data-icon="list-filter" aria-hidden="true"></span>
+                  <span>应用筛选</span>
+                </button>
+              </div>
+            </form>
+
+            <section class="table-panel" aria-label="预约列表">
+              <div class="table-wrap" id="reservation-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>设备</th>
+                      <th>预约人</th>
+                      <th>日期</th>
+                      <th>时段</th>
+                      <th>状态</th>
+                      <th class="align-right">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reservation-table-body"></tbody>
+                </table>
+              </div>
+              <div class="empty-state" id="reservation-empty" hidden>
+                <span data-icon="calendar-x" aria-hidden="true"></span>
+                <h3>没有符合条件的预约</h3>
+                <p>调整筛选条件，或创建一条新预约。</p>
+              </div>
+            </section>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="modal" id="equipment-dialog">
+      <form method="dialog" class="modal-card" id="equipment-form">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">设备档案</p>
+            <h2 id="equipment-dialog-title">添加设备</h2>
+          </div>
+          <button class="icon-button modal-close" type="button" data-close-dialog aria-label="关闭">
+            <span data-icon="x" aria-hidden="true"></span>
+          </button>
+        </div>
+        <input id="equipment-id" name="id" type="hidden">
+        <div class="form-grid">
+          <label class="field">
+            <span>设备编号 <b>*</b></span>
+            <input id="equipment-code" name="code" required maxlength="40" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>设备名称 <b>*</b></span>
+            <input id="equipment-name" name="name" required maxlength="80" autocomplete="off">
+          </label>
+          <label class="field field-wide">
+            <span>存放位置 <b>*</b></span>
+            <input id="equipment-location" name="location" required maxlength="120" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>设备状态 <b>*</b></span>
+            <select id="equipment-status" name="status" required>
+              <option value="available">可预约</option>
+              <option value="maintenance">维护中</option>
+              <option value="retired">已停用</option>
+            </select>
+          </label>
+          <div class="field">
+            <span>每日可用时段 <b>*</b></span>
+            <div class="time-range">
+              <select id="equipment-opening-start" name="opening_start" required></select>
+              <span>至</span>
+              <select id="equipment-opening-end" name="opening_end" required></select>
+            </div>
+          </div>
+          <label class="field field-wide">
+            <span>备注</span>
+            <textarea id="equipment-notes" name="notes" rows="3" maxlength="500"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="button button-ghost" type="button" data-close-dialog>取消</button>
+          <button class="button button-primary" type="submit">
+            <span data-icon="save" aria-hidden="true"></span>
+            <span>保存设备</span>
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="reservation-dialog">
+      <form method="dialog" class="modal-card" id="reservation-form">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">时间安排</p>
+            <h2>新建预约</h2>
+          </div>
+          <button class="icon-button modal-close" type="button" data-close-dialog aria-label="关闭">
+            <span data-icon="x" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="form-grid">
+          <label class="field field-wide">
+            <span>设备 <b>*</b></span>
+            <select id="reservation-equipment" name="equipment_id" required></select>
+            <small id="reservation-availability"></small>
+          </label>
+          <label class="field">
+            <span>预约人 <b>*</b></span>
+            <input id="reservation-requester" name="requester" required maxlength="80" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>日期 <b>*</b></span>
+            <input id="reservation-date" name="date" type="date" required>
+          </label>
+          <div class="field">
+            <span>预约时段 <b>*</b></span>
+            <div class="time-range">
+              <select id="reservation-start" name="start_time" required></select>
+              <span>至</span>
+              <select id="reservation-end" name="end_time" required></select>
+            </div>
+          </div>
+          <label class="field field-wide">
+            <span>备注</span>
+            <textarea id="reservation-notes" name="notes" rows="3" maxlength="500"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="button button-ghost" type="button" data-close-dialog>取消</button>
+          <button class="button button-primary" type="submit">
+            <span data-icon="calendar-check" aria-hidden="true"></span>
+            <span>确认预约</span>
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal confirm-modal" id="confirm-dialog">
+      <div class="modal-card">
+        <div class="confirm-icon" id="confirm-icon" data-icon="circle-alert" aria-hidden="true"></div>
+        <h2 id="confirm-title">确认操作</h2>
+        <p id="confirm-message"></p>
+        <div class="modal-actions">
+          <button class="button button-ghost" id="confirm-cancel" type="button">取消</button>
+          <button class="button button-danger" id="confirm-accept" type="button">确认</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <script src="/icons.js?v=20261115"></script>
+    <script src="/app.js?v=20261115"></script>
+  </body>
+</html>
