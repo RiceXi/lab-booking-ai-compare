@@ -2,8 +2,8 @@
 
 ## 1. 工具与开发概述
 
-- GitHub：Zsource-Fuyi（待确认）
-- AI 工具：minimax
+- GitHub：Zsource-Fuyi
+- AI 工具：MiniMax M3.1 Flash
 - 使用方式：
 
 ## 2. 开发计划

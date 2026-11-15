@@ -3,7 +3,7 @@
 ## 1. 工具与开发概述
 
 - GitHub：
-- AI 工具：ds4.1f
+- AI 工具：DeepSeek-V4.1-Flash
 - 使用方式：
 
 ## 2. 开发计划

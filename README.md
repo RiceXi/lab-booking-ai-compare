@@ -8,9 +8,9 @@
 
 | 成员 | GitHub 账号 | 使用 AI 工具 | 开发分支 | 源码目录 |
 | --- | --- | --- | --- | --- |
-| 成员一 | RiceXi | ds4.1f | dev/member-1 | implementations/member-1/ |
-| 成员二 | Zsource-Fuyi（待确认） | minimax | dev/member-2 | implementations/member-2/ |
-| 成员三 |  | Gemini | dev/member-3 | implementations/member-3/ |
+| 成员一 | RiceXi | DeepSeek-V4.1-Flash | dev/member-1 | implementations/member-1/ |
+| 成员二 | Zsource-Fuyi | MiniMax M3.1 Flash | dev/member-2 | implementations/member-2/ |
+| 成员三 | KingSure000 | Gemini 4 Hydrogen | dev/member-3 | implementations/member-3/ |
 
 ## 项目阶段
 
