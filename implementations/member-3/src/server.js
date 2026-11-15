@@ -12,6 +12,14 @@ const DATA_FILE = process.env.DATA_FILE
 
 const { server, storage } = createLabBookingApp({ dataFilePath: DATA_FILE });
 
+server.on('error', (err) => {
+  if (err && err.code === 'EADDRINUSE') {
+    console.error(`[提示] 端口 ${PORT} 已被占用，说明服务可能已在运行，可直接浏览器访问 http://${HOST}:${PORT}`);
+    process.exit(1);
+  }
+  throw err;
+});
+
 server.listen(PORT, HOST, () => {
   console.log('====================================================');
   console.log('  实验室设备预约管理器 (Member-3 / KingSure000)');
