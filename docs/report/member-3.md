@@ -3,7 +3,7 @@
 ## 1. 工具与开发概述
 
 - GitHub：KingSure000
-- AI 工具：Gemini 3.8 Flash
+- AI 工具：Gemini–4–Carbon
 - 使用方式：WorkBuddy AI 桌面端 Agent 协作模式（2026-11-15 访问使用），基于项目公共文档完成需求契约解析、零外部依赖全栈代码生成、原生离线可视化构建与自动化验收测试验证。
 
 ## 2. 开发计划
