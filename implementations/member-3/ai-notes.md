@@ -55,3 +55,15 @@
 
 ### 验证结果
 使用 `D:\node.exe --test tests/acceptance.test.js` 执行自动化验收套件，12 个子测试项（覆盖 AC1–AC12、非法状态流转拦截、跨实例重启持久化）全部一次通过（Pass 12 / Fail 0，耗时 290ms），静态资源与健康检查接口均返回 HTTP 200，`git check-ignore` 确认 `data.json` 被正确忽略。
+
+## 第 5 轮：真实本地终端（CMD / PowerShell）启动复测与运行文档修正
+
+### 发现的问题
+人工在本机 Windows 终端按初版运行说明实测启动时，暴露出两处 AI 初版通用 Bash 风格说明未覆盖的 Windows 终端兼容性细节：
+1. **Windows CMD 跨盘符切换失效与行内注释差异**：在默认 `C:\Users\...>` 提示符下执行不带 `/d` 的 `cd "E:\..."` 不会切换当前工作盘符，导致执行 `npm start` 时报 `ENOENT: Could not read C:\Users\...\package.json`；同时 CMD 不将 `#` 识别为行尾注释。
+2. **Windows PowerShell 默认执行策略拦截 `npm.ps1`**：在未修改 `ExecutionPolicy` 的全新 Windows PowerShell 中直接敲 `npm start` 会触发 `PSSecurityException（禁止运行脚本 D:\npm.ps1）`。
+3. **重复启动端口冲突提示可读性不足**：若前序服务仍在监听 `3003` 端口，再次启动会直接抛出原生 Node `EADDRINUSE` 堆栈。
+
+### 人工与工程修改
+- 修改 `implementations/member-3/src/server.js`：增加 `server.on('error')` 捕获 `EADDRINUSE`，输出清晰的中文提示说明端口已占用及访问地址。
+- 修改 `implementations/member-3/README.md` 与 `docs/report/member-3.md`：按 **Windows CMD（强调 `cd /d` 且不带 `#` 注释）**、**Windows PowerShell（给出免改策略的 `npm.cmd start` / `node src/server.js` 方案）** 与 **Git Bash / macOS / Linux** 分环境细化启动步骤，确保任何评测环境按文档均可一次启动成功。

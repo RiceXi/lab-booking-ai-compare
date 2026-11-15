@@ -10,39 +10,57 @@
 
 ## 2. 依赖安装与启动方式
 
-在干净环境中打开终端，进入本实现目录：
+本项目**无任何第三方运行时依赖**，无需联网下载依赖即可直接运行。请根据你所使用的终端类型执行对应命令：
+
+### 方式一：Windows CMD（命令提示符）启动步骤
+
+1. **跨盘符进入目录**（Windows CMD 从 `C:` 盘切换到其他盘符时必须加 `/d`，且输入命令时不要附带 `#` 注释）：
+   ```cmd
+   cd /d "<仓库所在路径>\lab-booking-ai-compare\implementations\member-3"
+   ```
+   *(若当前已在仓库根目录下，直接执行 `cd implementations\member-3` 即可)*
+2. **启动服务**：
+   ```cmd
+   npm start
+   ```
+   *(等价命令：`node src/server.js`)*
+3. **运行自动化验收测试（覆盖 AC1–AC12）**：
+   ```cmd
+   npm test
+   ```
+   *(等价命令：`node --test tests/acceptance.test.js`)*
+
+### 方式二：Windows PowerShell 启动步骤
+
+1. **进入实现目录**：
+   ```powershell
+   cd "<仓库所在路径>\lab-booking-ai-compare\implementations\member-3"
+   ```
+2. **启动服务与运行测试**：
+   > **注意**：若 Windows PowerShell 默认安全策略提示 `无法加载文件 npm.ps1，因为在此系统上禁止运行脚本`，请直接使用 `npm.cmd` 或 `node` 命令运行（无需修改系统策略）：
+   ```powershell
+   npm.cmd start
+   ```
+   ```powershell
+   npm.cmd test
+   ```
+   *(或直接执行 `node src/server.js` 与 `node --test tests/acceptance.test.js`)*
+
+### 方式三：Git Bash / macOS / Linux 终端
 
 ```bash
 cd implementations/member-3
+npm install   # 可选，零外部依赖瞬间完成
+npm test      # 运行 AC1-AC12 自动化验收测试
+npm start     # 启动本地服务
 ```
 
-### 依赖安装
-本项目无第三方运行时依赖，无需联网下载依赖即可直接运行（执行 `npm install` 亦可通过）：
+### 浏览器访问与端口说明
 
-```bash
-npm install
-```
-
-### 启动服务
-
-```bash
-npm start
-```
-
-（等价命令：`node src/server.js`）
-
-启动成功后，在浏览器访问：
-
-- **默认地址**：`http://127.0.0.1:3003`
-- 如需自定义端口，可设置环境变量 `PORT`（例如 PowerShell 下：`$env:PORT=4000; npm start`）
-
-### 运行自动化验收测试（覆盖 AC1–AC12）
-
-```bash
-npm test
-```
-
-（等价命令：`node --test tests/acceptance.test.js`，测试使用系统临时目录下的独立 JSON 文件，不会覆盖或污染本地正式数据）
+- 启动成功后保持终端窗口开启，在浏览器访问：**`http://127.0.0.1:3003`**
+- 停止服务：在终端窗口按 `Ctrl + C`
+- 自定义端口：可通过环境变量 `PORT` 指定（例如 CMD 下 `set PORT=4000 && npm start`，PowerShell 下 `$env:PORT=4000; npm.cmd start`）
+- 自动化测试说明：`npm test` 使用系统临时目录下的独立 JSON 文件，不会覆盖或污染本地正式数据。
 
 ## 3. 本地数据文件位置
 

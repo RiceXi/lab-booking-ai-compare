@@ -39,6 +39,7 @@
 2. **JS 日期自动进位缺陷防护**：JavaScript 原生 `new Date('2026-02-31')` 会静默进位为 `3月3日`。在 `src/validators.js` 的 `validateDateString` 中加入 `Date.UTC` 年月日反向校验，确保非法日历日期返回 `400 INVALID_DATE`。
 3. **Windows 文件原子替换锁降级**：`src/storage.js` 使用临时文件 `fs.renameSync` 原子落盘时，针对 Windows 文件索引偶发句柄占用可能导致 `EPERM` 的风险，补充了清理临时文件并降级 `fs.writeFileSync` 的容错分支。
 4. **前端模块化拆分与验收可测性调整**：首次生成大体积单文件前端脚本时触发传输超时，重构拆分为 `api.js`、`charts.js`、`render.js`、`app.js` 四个高内聚模块；同时保留下拉框中 `maintenance`/`retired` 设备选项（附不可预约标记）与独立起止时间选择，方便验收时在 UI 上直观触发并验证 AC6 与 AC12 的拦截提示。
+5. **Windows CMD / PowerShell 启动说明与端口占用提示修正**：人工在本机终端实测启动时发现，AI 初版给出的 Bash 风格启动命令忽略了 Windows CMD 跨盘符切换必须带 `/d`（否则停留在 `C:` 盘报找不到 `package.json` 且不支持 `#` 注释），以及全新 Windows PowerShell 默认策略拦截 `npm.ps1` 的问题。据此补充了 `server.js` 端口占用中文提示，并在运行说明中分别写明 CMD（`cd /d`）与 PowerShell（`npm.cmd` / `node` 直接运行）标准步骤。
 
 ## 6. 代码结构说明
 
@@ -77,16 +78,26 @@
 ## 9. 运行说明
 
 - **语言与运行时**：JavaScript，Node.js `>= 18.0.0`（实测版本 `Node.js v24.16.0`）
-- **依赖安装**：无第三方依赖，进入 `implementations/member-3` 目录即可直接运行（执行 `npm install` 亦可）
-- **启动命令**：
-  ```bash
-  cd implementations/member-3
+- **依赖安装**：无第三方依赖，进入 `implementations/member-3` 目录即可直接运行
+- **Windows CMD（命令提示符）启动与测试**：
+  ```cmd
+  cd /d "<仓库路径>\lab-booking-ai-compare\implementations\member-3"
+  npm test
   npm start
   ```
-  启动后浏览器打开 `http://127.0.0.1:3003` 即可离线使用全部功能。
-- **自动化验收测试命令**：
+  *(注意：CMD 从 C 盘跨盘符切换必须加 `/d`，且不要复制 `#` 注释文本)*
+- **Windows PowerShell 启动与测试**：
+  ```powershell
+  cd "<仓库路径>\lab-booking-ai-compare\implementations\member-3"
+  npm.cmd test
+  npm.cmd start
+  ```
+  *(使用 `npm.cmd` 或直接运行 `node src/server.js` 可避免 PowerShell 默认禁止执行 `npm.ps1` 脚本报错)*
+- **Git Bash / macOS / Linux 启动与测试**：
   ```bash
   cd implementations/member-3
   npm test
+  npm start
   ```
+- **访问地址**：服务启动后浏览器打开 `http://127.0.0.1:3003` 即可离线使用全部功能（按 `Ctrl + C` 停止服务）。
 - **数据文件位置**：`implementations/member-3/data.json`（首次运行自动生成，已配置 `.gitignore` 忽略，不提交至 Git）。
