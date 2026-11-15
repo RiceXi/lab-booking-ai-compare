@@ -3,7 +3,7 @@
 ## 1. 工具与开发概述
 
 - GitHub：KingSure000
-- AI 工具：Gemini 4 Hydrogen
+- AI 工具：Gemini 3.8 Flash
 - 使用方式：
 
 ## 2. 开发计划
