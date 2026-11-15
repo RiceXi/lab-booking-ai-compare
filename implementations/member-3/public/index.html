@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实验室设备预约管理器</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 顶部栏 -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="17" rx="3" stroke="currentColor" stroke-width="2" />
+            <path d="M8 2V6M16 2V6M3 9H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <circle cx="8.5" cy="13.5" r="1.5" fill="currentColor" />
+            <circle cx="12" cy="13.5" r="1.5" fill="currentColor" />
+            <circle cx="15.5" cy="13.5" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">实验室设备预约管理器</h1>
+          <p class="brand-subtitle">单机本地持久化 · 30 分钟粒度半开区间冲突检测 · 成员三（KingSure000）实现版</p>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist" aria-label="功能导航">
+        <button type="button" class="nav-tab active" data-tab="reservations" role="tab" aria-selected="true">
+          预约管理与筛选
+        </button>
+        <button type="button" class="nav-tab" data-tab="equipments" role="tab" aria-selected="false">
+          设备管理
+        </button>
+        <button type="button" class="nav-tab" data-tab="stats" role="tab" aria-selected="false">
+          统计与可视化
+        </button>
+      </nav>
+    </header>
+
+    <!-- 全局反馈提示横幅 -->
+    <div id="globalAlert" class="alert-banner hidden" role="alert">
+      <span id="globalAlertText"></span>
+      <button type="button" id="globalAlertClose" class="alert-close" aria-label="关闭提示">&times;</button>
+    </div>
+
+    <!-- 顶部实时核心指标摘要 -->
+    <section class="kpi-strip" aria-label="核心统计概览">
+      <div class="kpi-card">
+        <div class="kpi-label">设备总数</div>
+        <div class="kpi-value" id="kpiTotalEquipments">0</div>
+        <div class="kpi-meta" id="kpiEquipmentMeta">可预约 0 · 维护中 0 · 已停用 0</div>
+      </div>
+      <div class="kpi-card accent-blue">
+        <div class="kpi-label">有效预约数（进行中）</div>
+        <div class="kpi-value" id="kpiActiveReservations">0</div>
+        <div class="kpi-meta" id="kpiActiveMeta">已预约 0 · 使用中 0</div>
+      </div>
+      <div class="kpi-card accent-green">
+        <div class="kpi-label">已完成预约数</div>
+        <div class="kpi-value" id="kpiCompletedReservations">0</div>
+        <div class="kpi-meta" id="kpiCompletedMeta">非取消有效累计 0 条</div>
+      </div>
+      <div class="kpi-card accent-muted">
+        <div class="kpi-label">已取消预约数</div>
+        <div class="kpi-value" id="kpiCancelledReservations">0</div>
+        <div class="kpi-meta" id="kpiCancelledMeta">历史总记录 0 条</div>
+      </div>
+    </section>
+
+    <!-- ==================== 页签 1：预约管理与筛选 ==================== -->
+    <main id="tab-reservations" class="tab-panel active">
+      <div class="workspace-grid">
+        <!-- 左侧：新建预约表单 -->
+        <section class="panel form-panel">
+          <div class="panel-header">
+            <h2>新建设备预约</h2>
+            <span class="badge badge-neutral">时间粒度 30 分钟 · [开始, 结束)</span>
+          </div>
+
+          <div id="reservationFormError" class="inline-error hidden" role="alert"></div>
+
+          <form id="reservationForm" novalidate>
+            <div class="form-group">
+              <label for="resEquipmentId">选择设备 <span class="req">*</span></label>
+              <select id="resEquipmentId" required>
+                <option value="">-- 请先添加并选择设备 --</option>
+              </select>
+              <div id="selectedEquipmentHint" class="field-hint">请选择要预约的实验室设备</div>
+            </div>
+
+            <div class="form-group">
+              <label for="resRequester">预约人（姓名或学号） <span class="req">*</span></label>
+              <input
+                type="text"
+                id="resRequester"
+                placeholder="例如：张三 / 2024301001"
+                maxlength="64"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="resDate">预约日期 <span class="req">*</span></label>
+              <input type="date" id="resDate" required />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="resStartTime">开始时间 <span class="req">*</span></label>
+                <select id="resStartTime" required></select>
+              </div>
+              <div class="form-group">
+                <label for="resEndTime">结束时间 <span class="req">*</span></label>
+                <select id="resEndTime" required></select>
+              </div>
+            </div>
+
+            <!-- 当日设备已占用时段实时预览 -->
+            <div class="day-occupancy-box">
+              <div class="occupancy-title">所选设备当日有效预约占用预览：</div>
+              <div id="dayOccupancyList" class="occupancy-list">
+                <span class="text-muted">选择设备与日期后显示当日占用情况</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="resNotes">用途备注（选填）</label>
+              <textarea
+                id="resNotes"
+                rows="2"
+                maxlength="200"
+                placeholder="例如：材料表面形貌表征实验"
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block">提交预约申请</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- 右侧：多条件筛选与预约列表 -->
+        <section class="panel list-panel">
+          <div class="panel-header">
+            <h2>预约记录查询与状态管理</h2>
+            <span id="reservationCountBadge" class="badge badge-info">共 0 条记录</span>
+          </div>
+
+          <!-- 组合筛选栏 -->
+          <form id="filterForm" class="filter-bar">
+            <div class="filter-item">
+              <label for="filterEquipment">按设备筛选</label>
+              <select id="filterEquipment">
+                <option value="">全部设备</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="filterDate">按日期筛选</label>
+              <input type="date" id="filterDate" />
+            </div>
+
+            <div class="filter-item">
+              <label for="filterStatus">按状态筛选</label>
+              <select id="filterStatus">
+                <option value="">全部状态</option>
+                <option value="booked">已预约 (booked)</option>
+                <option value="in_use">使用中 (in_use)</option>
+                <option value="completed">已完成 (completed)</option>
+                <option value="cancelled">已取消 (cancelled)</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="filterRequester">预约人检索</label>
+              <input type="text" id="filterRequester" placeholder="输入姓名或学号..." />
+            </div>
+
+            <div class="filter-actions">
+              <button type="submit" class="btn btn-secondary">筛选</button>
+              <button type="button" id="resetFilterBtn" class="btn btn-ghost">重置</button>
+            </div>
+          </form>
+
+          <div class="table-wrapper">
+            <table class="data-table" aria-label="预约记录表">
+              <thead>
+                <tr>
+                  <th>设备信息</th>
+                  <th>预约人</th>
+                  <th>预约日期</th>
+                  <th>时间区间</th>
+                  <th>状态</th>
+                  <th>备注</th>
+                  <th>状态流转操作</th>
+                </tr>
+              </thead>
+              <tbody id="reservationTableBody">
+                <tr>
+                  <td colspan="7" class="empty-cell">暂无预约记录</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ==================== 页签 2：设备管理 ==================== -->
+    <section id="tab-equipments" class="tab-panel">
+      <div class="workspace-grid">
+        <!-- 左侧：添加/编辑设备表单 -->
+        <section class="panel form-panel">
+          <div class="panel-header">
+            <h2 id="equipmentFormTitle">添加实验室设备</h2>
+            <button type="button" id="cancelEditEquipmentBtn" class="btn btn-ghost btn-sm hidden">
+              退出编辑
+            </button>
+          </div>
+
+          <div id="equipmentFormError" class="inline-error hidden" role="alert"></div>
+
+          <form id="equipmentForm" novalidate>
+            <input type="hidden" id="eqEditId" value="" />
+
+            <div class="form-group">
+              <label for="eqCode">设备编号（全局唯一） <span class="req">*</span></label>
+              <input
+                type="text"
+                id="eqCode"
+                placeholder="例如：EQ-SEM-01"
+                maxlength="40"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="eqName">设备名称 <span class="req">*</span></label>
+              <input
+                type="text"
+                id="eqName"
+                placeholder="例如：场发射扫描电子显微镜"
+                maxlength="80"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="eqLocation">存放位置 <span class="req">*</span></label>
+              <input
+                type="text"
+                id="eqLocation"
+                placeholder="例如：实验楼 B204 洁净室"
+                maxlength="80"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="eqStatus">设备状态 <span class="req">*</span></label>
+              <select id="eqStatus" required>
+                <option value="available">可预约 (available)</option>
+                <option value="maintenance">维护中 (maintenance) - 禁止新预约</option>
+                <option value="retired">已停用 (retired) - 禁止新预约</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="eqOpeningStart">每日开放开始 <span class="req">*</span></label>
+                <select id="eqOpeningStart" required></select>
+              </div>
+              <div class="form-group">
+                <label for="eqOpeningEnd">每日开放结束 <span class="req">*</span></label>
+                <select id="eqOpeningEnd" required></select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="eqNotes">设备说明 / 备注（选填）</label>
+              <textarea
+                id="eqNotes"
+                rows="2"
+                maxlength="200"
+                placeholder="例如：需提前完成操作安全培训"
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="eqSubmitBtn" class="btn btn-primary btn-block">
+                保存新设备
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- 右侧：设备列表 -->
+        <section class="panel list-panel">
+          <div class="panel-header">
+            <h2>实验室设备台账</h2>
+            <span id="equipmentCountBadge" class="badge badge-info">共 0 台设备</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table" aria-label="设备列表">
+              <thead>
+                <tr>
+                  <th>设备编号</th>
+                  <th>设备名称</th>
+                  <th>存放位置</th>
+                  <th>状态</th>
+                  <th>每日可预约时段</th>
+                  <th>有效预约</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="equipmentTableBody">
+                <tr>
+                  <td colspan="7" class="empty-cell">暂无设备，请在左侧表单添加设备</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ==================== 页签 3：统计与可视化 ==================== -->
+    <section id="tab-stats" class="tab-panel">
+      <div class="charts-grid">
+        <!-- 图表 1：按设备统计柱状图 -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>各设备使用情况柱状图（排除已取消预约）</h2>
+            <div class="segmented-control" role="group" aria-label="统计指标切换">
+              <button type="button" class="seg-btn active" data-metric="count">预约次数（次）</button>
+              <button type="button" class="seg-btn" data-metric="hours">累计时长（小时）</button>
+            </div>
+          </div>
+          <div id="equipmentBarChart" class="chart-container"></div>
+        </section>
+
+        <!-- 图表 2：预约状态分类占比环形图 -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>预约记录状态分类占比</h2>
+            <span class="badge badge-neutral">全量状态分布</span>
+          </div>
+          <div id="statusDonutChart" class="chart-container"></div>
+        </section>
+      </div>
+
+      <!-- 按设备统计明细表 -->
+      <section class="panel mt-16">
+        <div class="panel-header">
+          <h2>按设备统计预约次数与使用时长明细</h2>
+          <span id="dataFileHint" class="text-muted small-text"></span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" aria-label="按设备统计明细表">
+            <thead>
+              <tr>
+                <th>设备编号</th>
+                <th>设备名称</th>
+                <th>存放位置</th>
+                <th>当前状态</th>
+                <th>有效预约（进行中）</th>
+                <th>已完成预约</th>
+                <th>有效累计次数（非取消）</th>
+                <th>已取消次数</th>
+                <th>累计使用时长（小时）</th>
+              </tr>
+            </thead>
+            <tbody id="statsEquipmentTableBody">
+              <tr>
+                <td colspan="9" class="empty-cell">暂无统计数据</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <!-- 设备详情弹窗 -->
+  <div id="equipmentDetailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="detailModalTitle">设备详情</h3>
+        <button type="button" id="closeDetailModalBtn" class="modal-close" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div id="equipmentDetailContent" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/api.js"></script>
+  <script src="/charts.js"></script>
+  <script src="/render.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

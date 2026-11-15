@@ -1,0 +1,14 @@
+{
+  "name": "lab-booking-manager-member-3",
+  "version": "1.0.0",
+  "description": "实验室设备预约管理器（成员三 KingSure000 实现版）",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test tests/acceptance.test.js"
+  }
+}
