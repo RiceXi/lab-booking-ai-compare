@@ -10,7 +10,7 @@
 | --- | --- | --- | --- | --- |
 | 成员一 | RiceXi | DeepSeek-V4.1-Flash | dev/member-1 | implementations/member-1/ |
 | 成员二 | Zsource-Fuyi | MiniMax M3.1 Flash | dev/member-2 | implementations/member-2/ |
-| 成员三 | KingSure000 | Gemini 3.8 Flash | dev/member-3 | implementations/member-3/ |
+| 成员三 | KingSure000 | Gemini–4–Carbon | dev/member-3 | implementations/member-3/ |
 
 ## 项目阶段
 
