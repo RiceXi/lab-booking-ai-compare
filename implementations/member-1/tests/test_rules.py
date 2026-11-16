@@ -94,6 +94,55 @@ class BookingRuleTests(unittest.TestCase):
             )
         self.assertEqual("equipment_code_exists", context.exception.code)
 
+    def test_equipment_text_limits_are_enforced_by_the_service(self) -> None:
+        base_payload = {
+            "code": "LIMIT-001",
+            "name": "长度测试设备",
+            "location": "实验楼 E-101",
+            "status": "available",
+            "opening_start": "08:00",
+            "opening_end": "18:00",
+            "notes": "",
+        }
+        cases = [
+            ("code", "X" * 41, 40),
+            ("name", "名" * 81, 80),
+            ("location", "址" * 121, 120),
+            ("notes", "注" * 501, 500),
+        ]
+        for field, value, max_length in cases:
+            with self.subTest(field=field):
+                with self.assertRaises(AppError) as context:
+                    self.service.create_equipment({**base_payload, field: value})
+                self.assertEqual(field, context.exception.details["field"])
+                self.assertEqual(
+                    max_length,
+                    context.exception.details["max_length"],
+                )
+
+    def test_reservation_text_limits_are_enforced_by_the_service(self) -> None:
+        payload = {
+            "equipment_id": self.equipment["id"],
+            "requester": "张同学",
+            "date": "2026-11-25",
+            "start_time": "09:00",
+            "end_time": "10:00",
+            "notes": "",
+        }
+        cases = [
+            ("requester", "人" * 81, 80),
+            ("notes", "注" * 501, 500),
+        ]
+        for field, value, max_length in cases:
+            with self.subTest(field=field):
+                with self.assertRaises(AppError) as context:
+                    self.service.create_reservation({**payload, field: value})
+                self.assertEqual(field, context.exception.details["field"])
+                self.assertEqual(
+                    max_length,
+                    context.exception.details["max_length"],
+                )
+
     def test_concurrent_overlapping_requests_create_only_one_booking(self) -> None:
         barrier = threading.Barrier(2)
         outcomes: list[str] = []

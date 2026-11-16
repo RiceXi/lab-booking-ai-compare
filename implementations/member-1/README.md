@@ -71,6 +71,17 @@ python server.py --db D:\lab-data\booking.sqlite
 - `completed` 和 `cancelled` 不会阻止新预约。
 - 设备不是 `available` 时不能创建预约。
 
+后端同时执行与页面一致的字段长度限制：
+
+| 字段 | 最大长度 |
+| --- | --- |
+| 设备编号 | 40 |
+| 设备名称 | 80 |
+| 存放位置 | 120 |
+| 设备备注 | 500 |
+| 预约人 | 80 |
+| 预约备注 | 500 |
+
 ## 数据说明
 
 删除没有有效预约的设备时，该设备下已完成或已取消的历史预约会随设备一起删除。这是数据契约允许的两种历史处理方式之一，界面确认框会明确提示。
@@ -101,7 +112,7 @@ python -m unittest discover -s tests -v
 其中：
 
 - `tests/test_acceptance.py` 与 `docs/acceptance.md` 的 AC1-AC12 一一对应。
-- `tests/test_rules.py` 覆盖 30 分钟粒度、开放时段、完成状态释放、非法流转、编辑冲突和并发重叠预约。
+- `tests/test_rules.py` 覆盖 30 分钟粒度、开放时段、完成状态释放、非法流转、字段长度、编辑冲突和并发重叠预约。
 - `tests/test_api.py` 验证 HTTP 接口、静态页面、错误状态码、非法状态流转和删除保护。
 
 仅运行验收测试：

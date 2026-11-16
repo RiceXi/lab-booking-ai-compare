@@ -22,6 +22,14 @@ STATUS_TRANSITIONS = {
 }
 TIME_PATTERN = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+MAX_LENGTHS = {
+    "equipment_code": 40,
+    "equipment_name": 80,
+    "equipment_location": 120,
+    "equipment_notes": 500,
+    "requester": 80,
+    "reservation_notes": 500,
+}
 
 
 class AppError(Exception):
@@ -46,20 +54,44 @@ def now_iso() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
 
 
-def _required_text(payload: dict[str, Any], key: str, label: str) -> str:
+def _required_text(
+    payload: dict[str, Any],
+    key: str,
+    label: str,
+    *,
+    max_length: int | None = None,
+) -> str:
     value = payload.get(key)
     if not isinstance(value, str) or not value.strip():
         raise AppError(f"{label}不能为空", details={"field": key})
-    return value.strip()
+    value = value.strip()
+    if max_length is not None and len(value) > max_length:
+        raise AppError(
+            f"{label}不能超过 {max_length} 个字符",
+            details={"field": key, "max_length": max_length},
+        )
+    return value
 
 
-def _optional_text(payload: dict[str, Any], key: str) -> str:
+def _optional_text(
+    payload: dict[str, Any],
+    key: str,
+    label: str,
+    *,
+    max_length: int | None = None,
+) -> str:
     value = payload.get(key, "")
     if value is None:
         return ""
     if not isinstance(value, str):
-        raise AppError(f"{key} 必须是文本", details={"field": key})
-    return value.strip()
+        raise AppError(f"{label}必须是文本", details={"field": key})
+    value = value.strip()
+    if max_length is not None and len(value) > max_length:
+        raise AppError(
+            f"{label}不能超过 {max_length} 个字符",
+            details={"field": key, "max_length": max_length},
+        )
+    return value
 
 
 def _validate_date(value: str) -> str:
@@ -183,9 +215,24 @@ class BookingService:
         *,
         default_available: bool,
     ) -> dict[str, Any]:
-        code = _required_text(payload, "code", "设备编号")
-        name = _required_text(payload, "name", "设备名称")
-        location = _required_text(payload, "location", "存放位置")
+        code = _required_text(
+            payload,
+            "code",
+            "设备编号",
+            max_length=MAX_LENGTHS["equipment_code"],
+        )
+        name = _required_text(
+            payload,
+            "name",
+            "设备名称",
+            max_length=MAX_LENGTHS["equipment_name"],
+        )
+        location = _required_text(
+            payload,
+            "location",
+            "存放位置",
+            max_length=MAX_LENGTHS["equipment_location"],
+        )
         status_value = payload.get("status", "available" if default_available else None)
         if status_value not in EQUIPMENT_STATUSES:
             raise AppError(
@@ -216,7 +263,12 @@ class BookingService:
             "status": status_value,
             "opening_start": opening_start,
             "opening_end": opening_end,
-            "notes": _optional_text(payload, "notes"),
+            "notes": _optional_text(
+                payload,
+                "notes",
+                "设备备注",
+                max_length=MAX_LENGTHS["equipment_notes"],
+            ),
         }
 
     def list_equipment(self) -> list[dict[str, Any]]:
@@ -409,7 +461,12 @@ class BookingService:
 
     def create_reservation(self, payload: dict[str, Any]) -> dict[str, Any]:
         equipment_id = _required_text(payload, "equipment_id", "设备")
-        requester = _required_text(payload, "requester", "预约人")
+        requester = _required_text(
+            payload,
+            "requester",
+            "预约人",
+            max_length=MAX_LENGTHS["requester"],
+        )
         reservation_date = _validate_date(_required_text(payload, "date", "预约日期"))
         start_time = _required_text(payload, "start_time", "开始时间")
         end_time = _required_text(payload, "end_time", "结束时间")
@@ -420,7 +477,12 @@ class BookingService:
                 "开始时间必须早于结束时间",
                 details={"field": "end_time"},
             )
-        notes = _optional_text(payload, "notes")
+        notes = _optional_text(
+            payload,
+            "notes",
+            "预约备注",
+            max_length=MAX_LENGTHS["reservation_notes"],
+        )
 
         connection = self._connect()
         try:

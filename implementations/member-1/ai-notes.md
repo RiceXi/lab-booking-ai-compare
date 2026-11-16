@@ -40,6 +40,7 @@
 6. 关闭并重启服务，再次加载页面确认 4 台设备和 3 条预约仍存在。
 7. 在 1440×900 和 390×844 视口检查布局；手机端页面无横向溢出，浏览器控制台无错误。
 8. 2026-11-16 继续做冻结前加固：增加 30 分钟粒度、开放时段、完成状态释放、非法流转、编辑冲突和并发重叠预约测试，并加强 HTTP 请求长度校验。
+9. 2026-11-16 将页面字段长度限制同步到领域服务层，防止绕过前端写入超长设备或预约文本，并补充服务与 API 测试。
 
 ## 4. AI 生成错误与修复
 
@@ -85,9 +86,9 @@
 | 检查 | 结果 |
 | --- | --- |
 | `python -m unittest tests.test_acceptance -v` | 12/12 通过 |
-| `python -m unittest tests.test_rules -v` | 6/6 通过 |
+| `python -m unittest tests.test_rules -v` | 8/8 通过 |
 | `python -m unittest tests.test_api -v` | 4/4 通过 |
-| `python -m unittest discover -s tests -v` | 22/22 通过 |
+| `python -m unittest discover -s tests -v` | 24/24 通过 |
 | `python -m py_compile ...` | 通过 |
 | `node --check static/app.js` | 通过 |
 | `node --check static/icons.js` | 通过 |

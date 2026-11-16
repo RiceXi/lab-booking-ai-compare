@@ -105,6 +105,19 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(400, status)
         self.assertEqual("invalid_request", malformed["error"]["code"])
 
+        status, too_long = self.request(
+            "/api/equipment",
+            method="POST",
+            payload={
+                **payload,
+                "code": "API-LONG",
+                "name": "名" * 81,
+            },
+        )
+        self.assertEqual(400, status)
+        self.assertEqual("name", too_long["error"]["field"])
+        self.assertEqual(80, too_long["error"]["max_length"])
+
     def test_reservation_conflict_is_returned_as_409(self) -> None:
         _, created = self.request(
             "/api/equipment",
