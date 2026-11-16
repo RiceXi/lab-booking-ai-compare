@@ -33,7 +33,7 @@ class ApiTests(unittest.TestCase):
         path: str,
         *,
         method: str = "GET",
-        payload: dict | None = None,
+        payload: dict | list | None = None,
     ) -> tuple[int, dict]:
         body = json.dumps(payload).encode("utf-8") if payload is not None else None
         request = Request(
@@ -93,6 +93,18 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(200, status)
         self.assertEqual("数字示波器", updated["item"]["name"])
 
+        status, detail = self.request(f"/api/equipment/{equipment_id}")
+        self.assertEqual(200, status)
+        self.assertEqual("数字示波器", detail["item"]["name"])
+
+        status, malformed = self.request(
+            "/api/equipment",
+            method="POST",
+            payload=[],
+        )
+        self.assertEqual(400, status)
+        self.assertEqual("invalid_request", malformed["error"]["code"])
+
     def test_reservation_conflict_is_returned_as_409(self) -> None:
         _, created = self.request(
             "/api/equipment",
@@ -134,6 +146,60 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(200, status)
         self.assertEqual("cancelled", cancelled["item"]["status"])
+
+    def test_invalid_transition_and_delete_protection_are_returned_as_409(self) -> None:
+        _, created = self.request(
+            "/api/equipment",
+            method="POST",
+            payload={
+                "code": "API-003",
+                "name": "逻辑分析仪",
+                "location": "A-203",
+                "status": "available",
+                "opening_start": "08:00",
+                "opening_end": "18:00",
+            },
+        )
+        equipment_id = created["item"]["id"]
+        _, reservation = self.request(
+            "/api/reservations",
+            method="POST",
+            payload={
+                "equipment_id": equipment_id,
+                "requester": "状态测试",
+                "date": "2026-11-22",
+                "start_time": "09:00",
+                "end_time": "10:00",
+            },
+        )
+        reservation_id = reservation["item"]["id"]
+
+        status, invalid = self.request(
+            f"/api/reservations/{reservation_id}/status",
+            method="PATCH",
+            payload={"status": "completed"},
+        )
+        self.assertEqual(409, status)
+        self.assertEqual("invalid_status_transition", invalid["error"]["code"])
+
+        status, blocked = self.request(
+            f"/api/equipment/{equipment_id}",
+            method="DELETE",
+        )
+        self.assertEqual(409, status)
+        self.assertEqual("equipment_in_use", blocked["error"]["code"])
+
+        self.request(
+            f"/api/reservations/{reservation_id}/status",
+            method="PATCH",
+            payload={"status": "cancelled"},
+        )
+        status, deleted = self.request(
+            f"/api/equipment/{equipment_id}",
+            method="DELETE",
+        )
+        self.assertEqual(200, status)
+        self.assertTrue(deleted["deleted"])
 
 
 if __name__ == "__main__":

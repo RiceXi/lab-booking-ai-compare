@@ -83,6 +83,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             content_length = int(length_header)
         except ValueError as exc:
             raise AppError("请求长度不合法") from exc
+        if content_length < 0:
+            raise AppError("请求长度不合法")
         if content_length > 1_000_000:
             raise AppError("请求内容过大", status=413)
         raw = self.rfile.read(content_length)

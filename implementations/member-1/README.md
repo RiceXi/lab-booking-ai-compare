@@ -98,7 +98,11 @@ python server.py --db D:\lab-data\booking.sqlite
 python -m unittest discover -s tests -v
 ```
 
-其中 `tests/test_acceptance.py` 与 `docs/acceptance.md` 的 AC1-AC12 一一对应；`tests/test_api.py` 验证 HTTP 接口、静态页面、错误状态码和冲突返回。
+其中：
+
+- `tests/test_acceptance.py` 与 `docs/acceptance.md` 的 AC1-AC12 一一对应。
+- `tests/test_rules.py` 覆盖 30 分钟粒度、开放时段、完成状态释放、非法流转、编辑冲突和并发重叠预约。
+- `tests/test_api.py` 验证 HTTP 接口、静态页面、错误状态码、非法状态流转和删除保护。
 
 仅运行验收测试：
 
@@ -109,7 +113,7 @@ python -m unittest tests.test_acceptance -v
 Python 与 JavaScript 静态检查：
 
 ```powershell
-python -m py_compile booking.py server.py tests/test_acceptance.py tests/test_api.py
+python -m py_compile booking.py server.py tests/test_acceptance.py tests/test_api.py tests/test_rules.py
 node --check static/app.js
 node --check static/icons.js
 ```
@@ -127,6 +131,7 @@ implementations/member-1/
 │   └── icons.js               # Lucide 图标子集（ISC License）
 ├── tests/
 │   ├── test_acceptance.py     # AC1-AC12
+│   ├── test_rules.py          # 规则边界和并发测试
 │   └── test_api.py            # HTTP 集成测试
 ├── ai-notes.md                # AI 开发过程记录
 └── data/                      # 运行时 SQLite 数据，不提交 Git

@@ -4,7 +4,7 @@
 
 - 课程分配工具：DeepSeek-V4.1-Flash
 - 本次实际执行工具：OpenAI Codex 桌面代理
-- 使用日期：2026-11-15（Asia/Shanghai）
+- 使用日期：2026-11-15 至 2026-11-16（Asia/Shanghai）
 - 工作分支：`dev/member-1`
 - 工作范围：仅 `implementations/member-1/` 与 `docs/report/member-1.md`
 
@@ -39,6 +39,7 @@
 5. 启动真实服务，通过浏览器新增 4 台设备、重复编号、相邻预约、冲突预约、取消、状态流转、组合筛选和维护设备限制。
 6. 关闭并重启服务，再次加载页面确认 4 台设备和 3 条预约仍存在。
 7. 在 1440×900 和 390×844 视口检查布局；手机端页面无横向溢出，浏览器控制台无错误。
+8. 2026-11-16 继续做冻结前加固：增加 30 分钟粒度、开放时段、完成状态释放、非法流转、编辑冲突和并发重叠预约测试，并加强 HTTP 请求长度校验。
 
 ## 4. AI 生成错误与修复
 
@@ -84,7 +85,9 @@
 | 检查 | 结果 |
 | --- | --- |
 | `python -m unittest tests.test_acceptance -v` | 12/12 通过 |
-| `python -m unittest tests.test_api -v` | 3/3 通过 |
+| `python -m unittest tests.test_rules -v` | 6/6 通过 |
+| `python -m unittest tests.test_api -v` | 4/4 通过 |
+| `python -m unittest discover -s tests -v` | 22/22 通过 |
 | `python -m py_compile ...` | 通过 |
 | `node --check static/app.js` | 通过 |
 | `node --check static/icons.js` | 通过 |
