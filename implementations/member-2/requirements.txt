@@ -1,0 +1,6 @@
+# 本实现只使用 Python 标准库（tkinter / json / unittest），无需安装任何第三方依赖。
+#
+# 如果需要显式声明依赖，保持本文件为空即可：
+#   pip install -r requirements.txt
+#
+# 环境要求：Python >= 3.8，且自带 tkinter。

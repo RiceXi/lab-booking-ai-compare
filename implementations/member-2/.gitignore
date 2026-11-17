@@ -1,0 +1,7 @@
+# 本地数据文件（运行说明见 README.md 第 2.3 节）
+data/
+data.json
+
+# Python
+__pycache__/
+*.py[cod]
